@@ -1,7 +1,9 @@
 package pb.spring.springmicrojmspractice.listener;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.messaging.Message;
+import org.springframework.jms.core.JmsTemplate;
+
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -9,13 +11,35 @@ import org.springframework.stereotype.Component;
 import pb.spring.springmicrojmspractice.config.JmsConfig;
 import pb.spring.springmicrojmspractice.model.HelloWorldMessage;
 
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+
+@RequiredArgsConstructor
 @Component
 public class MyListener {
+
+    private final JmsTemplate jmsTemplate;
 
     @JmsListener(destination = JmsConfig.MY_QUEUE)
     public void listen(@Payload HelloWorldMessage helloWorldMessage,
                        @Headers MessageHeaders headers,
-                       Message message){
+                       Message message) {
+//        System.out.println("I got a message");
+//        System.out.println(helloWorldMessage);
+
+    }
+
+    @JmsListener(destination = JmsConfig.MY_QUEUE2)
+    public void listenForHello(@Payload HelloWorldMessage helloWorldMessage,
+                               @Headers MessageHeaders headers,
+                               Message message) throws JMSException {
+        HelloWorldMessage resend = HelloWorldMessage
+                .builder()
+                .message("World")
+                .build();
+        System.out.println("receiver received a message");
+        jmsTemplate.convertAndSend(message.getJMSReplyTo(),resend);
         System.out.println("I got a message");
         System.out.println(helloWorldMessage);
 
